@@ -5,6 +5,8 @@ import Image from "next/image";
 import { ChevronDown, Check, Layers, Presentation } from "lucide-react";
 import { SlideData } from "@/types/presentation";
 
+import { NOAA_BLUE_SVG_DATA_URI } from "@/constants/logos";
+
 interface TopNavProps {
   title: string;
   slides: SlideData[];
@@ -21,10 +23,7 @@ export const TopNav: React.FC<TopNavProps> = ({
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
-  const currentSlide = slides[currentIndex];
-  const progressPercent = ((currentIndex + 1) / slides.length) * 100;
-
-  // Close dropdown on outside click
+  // Close dropdown on click outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (
@@ -38,10 +37,13 @@ export const TopNav: React.FC<TopNavProps> = ({
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
+  const currentSlide = slides[currentIndex];
+  const progressPercent = ((currentIndex + 1) / slides.length) * 100;
+
   return (
-    <header className="sticky top-0 z-50 w-full bg-white/95 backdrop-blur-md border-b border-slate-200 shadow-sm transition-colors">
-      {/* Top Reading Progress Bar */}
-      <div className="w-full bg-slate-100 h-1 overflow-hidden">
+    <header className="w-full bg-white/95 backdrop-blur-md border-b border-slate-200 sticky top-0 z-40 transition-all">
+      {/* Progress Bar Indicator */}
+      <div className="w-full h-1 bg-slate-100 overflow-hidden">
         <div
           className="h-full bg-gradient-to-r from-noaa-blue via-seagrass to-coral transition-all duration-300 ease-out"
           style={{ width: `${progressPercent}%` }}
@@ -52,13 +54,14 @@ export const TopNav: React.FC<TopNavProps> = ({
         {/* Left: Logo & Presentation Short Title */}
         <div className="flex items-center gap-2 sm:gap-3 shrink-0 min-w-0">
           <div className="w-8 h-8 sm:w-9 sm:h-9 max-w-[36px] max-h-[36px] shrink-0 flex items-center justify-center overflow-hidden">
-            <Image
-              src="/logos/blue.svg"
+            <img
+              src={NOAA_BLUE_SVG_DATA_URI}
               alt="NOAA Fisheries Blue Logo"
               width={36}
               height={36}
               className="w-8 h-8 sm:w-9 sm:h-9 max-w-[36px] max-h-[36px] object-contain shrink-0"
-              priority
+              loading="eager"
+              decoding="sync"
             />
           </div>
           <div className="hidden min-[400px]:block text-left min-w-0">
