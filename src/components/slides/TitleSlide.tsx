@@ -1,16 +1,25 @@
 "use client";
 
-import React from "react";
-import Image from "next/image";
+import React, { useRef } from "react";
 import { motion } from "framer-motion";
 import { TitleSlideData } from "@/types/presentation";
 import { Calendar, User, Tag } from "lucide-react";
+import { FISHERIES_LOGO_DATA_URI } from "@/constants/logos";
 
 interface TitleSlideProps {
   data: TitleSlideData;
 }
 
 export const TitleSlide: React.FC<TitleSlideProps> = ({ data }) => {
+  const imgRef = useRef<HTMLImageElement>(null);
+
+  const handleError = (e: React.SyntheticEvent<HTMLImageElement, Event>) => {
+    // Automatic failover to embedded base64 data URI if network fetch ever drops
+    if (e.currentTarget.src !== FISHERIES_LOGO_DATA_URI) {
+      e.currentTarget.src = FISHERIES_LOGO_DATA_URI;
+    }
+  };
+
   return (
     <div className="w-full min-h-[calc(100vh-8rem)] flex flex-col justify-center items-center px-4 sm:px-8 py-8 sm:py-12 bg-gradient-to-b from-white via-slate-50 to-noaa-blue-light/30">
       <motion.div
@@ -36,24 +45,28 @@ export const TitleSlide: React.FC<TitleSlideProps> = ({ data }) => {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.15, duration: 0.4 }}
-          className="mb-6 sm:mb-8 flex items-center justify-center shrink-0 h-16 sm:h-20 md:h-24 w-auto relative"
+          className="flex items-center justify-center shrink-0 h-16 sm:h-20 md:h-24 min-h-[64px] w-auto relative mb-3 sm:mb-4"
         >
-          <Image
-            src={data.logoPath || "/logos/fisheries.png"}
+          {/* Embedded base64 data URI: 100% immune to network disconnection, throttling, and remount race conditions */}
+          <img
+            ref={imgRef}
+            src={data.logoPath || FISHERIES_LOGO_DATA_URI}
             alt="NOAA Fisheries Logo"
             width={380}
             height={162}
-            className="h-16 sm:h-20 md:h-24 w-auto object-contain shrink-0"
-            priority
+            className="h-16 sm:h-20 md:h-24 w-auto max-w-full object-contain shrink-0"
+            loading="eager"
+            decoding="sync"
+            onError={handleError}
           />
         </motion.div>
 
-        {/* Coral Animated Accent Line */}
+        {/* Coral Animated Accent Line - matches exact width of the logo */}
         <motion.div
           initial={{ scaleX: 0 }}
           animate={{ scaleX: 1 }}
           transition={{ delay: 0.25, duration: 0.6, ease: "easeOut" }}
-          className="w-24 sm:w-32 h-1.5 bg-gradient-to-r from-coral via-coral-hover to-skygold rounded-full mb-8 origin-center"
+          className="w-[150px] sm:w-[188px] md:w-[224px] h-1.5 bg-gradient-to-r from-coral via-coral-hover to-skygold rounded-full mb-8 origin-center"
         />
 
         {/* Title */}
