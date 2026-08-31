@@ -1,10 +1,14 @@
 "use client";
 
-import React from "react";
+import React, { useRef } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { presentationConfig } from "@/content/slides";
 import { useSlideNavigation } from "@/hooks/useSlideNavigation";
 import { useSwipe } from "@/hooks/useSwipe";
+
+import { DevToolsProvider } from "@/context/DevToolsContext";
+import { DevToolbar } from "@/components/dev/DevToolbar";
+import { GridLayoutOverlay } from "@/components/dev/GridLayoutOverlay";
 
 import { TopNav } from "@/components/layout/TopNav";
 import { BottomNav } from "@/components/layout/BottomNav";
@@ -25,7 +29,7 @@ import {
   CodeSlideData,
 } from "@/types/presentation";
 
-export default function PresentationPage() {
+function PresentationView() {
   const {
     currentIndex,
     currentSlide,
@@ -36,6 +40,8 @@ export default function PresentationPage() {
     hasNext,
     hasPrev,
   } = useSlideNavigation({ slides: presentationConfig.slides });
+
+  const slideContainerRef = useRef<HTMLDivElement>(null);
 
   // Mobile swipe gesture handlers
   const swipeHandlers = useSwipe({
@@ -68,9 +74,12 @@ export default function PresentationPage() {
   return (
     <div
       {...swipeHandlers}
-      className="min-h-[100dvh] h-[100dvh] flex flex-col justify-between bg-slate-50 text-slate-900 overflow-hidden"
+      className="min-h-[100dvh] h-[100dvh] flex flex-col justify-between bg-slate-50 text-slate-900 overflow-hidden relative"
     >
-      {/* Top Header Navigation with Dropdown Selector */}
+      {/* Visual Alignment Guidelines (Excluded from PDF capture) */}
+      <GridLayoutOverlay />
+
+      {/* Top Header Navigation with Slide Selector & Dev Tools Toggle */}
       <TopNav
         title={presentationConfig.shortTitle || presentationConfig.title}
         slides={presentationConfig.slides}
@@ -78,12 +87,22 @@ export default function PresentationPage() {
         onSelectSlide={goToSlide}
       />
 
-      {/* Main Slide Canvas Container */}
+      {/* Collapsible Developer Toolbar (Sub-Header Bar) */}
+      <DevToolbar
+        slides={presentationConfig.slides}
+        currentIndex={currentIndex}
+        onGoToSlide={goToSlide}
+        getSlideElement={() => slideContainerRef.current}
+      />
+
+      {/* Main Slide Canvas Container (Target for PDF Capture) */}
       <main className="flex-1 w-full min-h-0 overflow-y-auto pb-20 pt-2 flex flex-col items-center justify-center">
         <AnimatePresence mode="wait">
           {currentSlide && (
             <motion.div
               key={currentSlide.id}
+              ref={slideContainerRef}
+              id="active-slide-canvas"
               initial={{ opacity: 0, x: 20 }}
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: -20 }}
@@ -106,5 +125,13 @@ export default function PresentationPage() {
         hasNext={hasNext}
       />
     </div>
+  );
+}
+
+export default function PresentationPage() {
+  return (
+    <DevToolsProvider>
+      <PresentationView />
+    </DevToolsProvider>
   );
 }
